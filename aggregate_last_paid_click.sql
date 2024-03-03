@@ -13,8 +13,8 @@ with tab1 as (
     from sessions as s
     left join leads as l
         on
-           s.visitor_id = l.visitor_id
-           and s.visit_date <= l.created_at
+            s.visitor_id = l.visitor_id
+            and s.visit_date <= l.created_at
     where s.medium != 'organic'
     order by
         s.visitor_id asc,
@@ -54,11 +54,10 @@ tab2 as (
         tab1.source,
         tab1.medium,
         tab1.campaign,
-        cast(tab1.visit_date as date) as visit_date,
+        to_char(tab1.visit_date, 'yyyy-mm-dd') as visit_date,
         count(tab1.visitor_id) as visitors_count,
         count(tab1.visitor_id) filter (
-            where
-        tab1.created_at is not null
+            where tab1.created_at is not null
         ) as leads_count,
         count(tab1.visitor_id) filter (
             where tab1.status_id = 142
@@ -76,7 +75,7 @@ tab2 as (
 )
 
 select
-    to_char(tab2.visit_date, 'yyyy-mm-dd') as visit_date,
+    tab2.visit_date as visit_date,
     tab2.visitors_count,
     tab2.source as utm_source,
     tab2.medium as utm_medium,
@@ -96,7 +95,7 @@ where tab2.medium != 'organic'
 order by
     tab2.revenue desc nulls last,
     tab2.visit_date asc,
-    visitors_count desc,
+    tab2.visitors_count desc,
     utm_source asc,
     utm_medium asc,
     utm_campaign asc
