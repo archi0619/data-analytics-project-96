@@ -14,6 +14,7 @@ with tab as (
     from sessions as s
     where s.medium != 'organic'
 )
+
 select
     t.visitor_id,
     t.visit_date as visit_date,

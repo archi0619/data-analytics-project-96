@@ -190,7 +190,8 @@ distinct(count(s.visitor_id)) as visitors_count,
 s.source,
 to_char(s.visit_date, 'yyyy-mm-dd') as date,
 count(l.lead_id) as lead_count,
-count(l.lead_id) filter(where l.amount != 0 and l.status_id = 142) as purchase_count,
+count(l.lead_id) filter(
+where l.amount != 0 and l.status_id = 142) as purchase_count,
 case when sum(l.amount) is null then 0
 else sum(l.amount) end as income
 from sessions s
@@ -222,8 +223,10 @@ case when sum(tab1.daily_spent) / sum(tab.lead_count) is null then 0
 else round((sum(tab1.daily_spent) / sum(tab.lead_count)), 2) end as cpl,
 case when sum(tab1.daily_spent) / sum(tab.purchase_count) is null then 0
 else round((sum(tab1.daily_spent) / sum(tab.purchase_count)), 2) end as cppu,
-case when (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent)) * 100.00 is null then sum(tab.income)
-else (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent)) * 100 end as roi
+case when (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent))
+* 100.00 is null then sum(tab.income)
+else (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent)) * 100
+end as roi
 from tab
 left join tab1
 on tab.source = tab1.utm_source
@@ -240,7 +243,8 @@ s.source,
 s.medium,
 s.campaign,
 count(l.lead_id) as lead_count,
-count(l.lead_id) filter(where l.amount != 0 and l.status_id = 142) as purchase_count,
+count(l.lead_id) filter(
+where l.amount != 0 and l.status_id = 142) as purchase_count,
 case when sum(l.amount) is null then 0
 else sum(l.amount) end as income
 from sessions s
@@ -277,12 +281,13 @@ case when sum(tab1.daily_spent) / sum(tab.lead_count) is null then 0
 else round((sum(tab1.daily_spent) / sum(tab.lead_count)), 2) end as cpl,
 case when sum(tab1.daily_spent) / sum(tab.purchase_count) is null then 0
 else round((sum(tab1.daily_spent) / sum(tab.purchase_count)), 2) end as cppu,
-case when (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent)) * 100.00 is null then sum(tab.income)
-else (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent)) * 100 end as roi
+case when (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent))
+* 100.00 is null then sum(tab.income)
+else (sum(tab.income) - sum(tab1.daily_spent) /
+sum(tab1.daily_spent)) * 100 end as roi
 from tab
 left join tab1
 on tab.source = tab1.utm_source
 and tab.medium = tab1.utm_medium
 and tab.campaign = tab1.utm_campaign
-group by 2, 3, 4, 1;
-*/
+group by 2, 3, 4, 1;*/
