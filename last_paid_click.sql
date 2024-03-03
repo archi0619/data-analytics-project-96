@@ -1,12 +1,12 @@
 select
 	distinct s.visitor_id,
-	MAX(s.visit_date) as lst,
-	s.source,
-	s.medium,
-	s.campaign,
+	MAX(s.visit_date) as visit_date,
+	s.source as utm_source,
+	s.medium as utm_medium,
+	s.campaign as utm_campaign,
 	l.lead_id,
 	l.created_at,
-	SUM(l.amount) as sum,
+	SUM(l.amount) as amount,
 	l.closing_reason,
 	l.status_id
 from sessions as s
@@ -30,7 +30,7 @@ group by
 	l.closing_reason,
 	l.status_id
 order by
-	sum desc nulls last,
-	lst asc,
-	s.source
+	amount desc nulls last,
+	visit_date asc,
+	utm_source
 limit 10;

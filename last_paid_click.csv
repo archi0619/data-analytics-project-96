@@ -1,4 +1,4 @@
-"visitor_id","lst","source","medium","campaign","lead_id","created_at","sum","closing_reason","status_id"
+"visitor_id","visit_date","utm_source","utm_medium","utm_campaign","lead_id","created_at","amount","closing_reason","status_id"
 f1dc9c36bd7269ed93e736b29de33e0e7a02e1a3,2023-06-20 15:15:04.701,telegram,cpp,base-java,"20614407",2023-06-26 17:47:47.000,1209536,Успешная продажа,142
 "47bdab8c9fdbb38d178a0b2a6b7c07ef8a2b0e0e",2023-06-30 09:18:57.436,admitad,cpa,admitad,"72973865",2023-06-25 12:33:45.000,938700,Успешная продажа,142
 "2baf2f6a216f2fa1774c8a057585fad3a736fa41",2023-06-30 12:43:25.228,admitad,cpa,admitad,"70872672",2023-06-02 18:59:29.000,603450,Успешная продажа,142
