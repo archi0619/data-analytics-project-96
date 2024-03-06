@@ -294,8 +294,10 @@ select
     round(sum(tab3.total_cost) / sum(tab3.visitors_count), 1) as cpu,
     case when sum(tab3.leads_count) = 0 or sum(tab3.leads_count) is null then 0
         else round(sum(tab3.total_cost) / sum(tab3.leads_count), 1) end as cpl,
-    case when sum(tab3.purchases_count) = 0 or sum(tab3.purchases_count) is null then 0
-        else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1) end as cppu,
+    case when sum(tab3.purchases_count) = 0
+    or sum(tab3.purchases_count) is null then 0
+        else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1)
+        end as cppu,
     round((sum(tab3.revenue) - sum(tab3.total_cost)) / sum(tab3.total_cost) * 100, 1) as roi
 from tab3
 group by 1;
@@ -415,11 +417,16 @@ select
     tab3.utm_medium,
     tab3.utm_campaign,
     round(sum(tab3.total_cost) / sum(tab3.visitors_count), 1) as cpu,
-    case when sum(tab3.leads_count) = 0 or sum(tab3.leads_count) is null then 0
-        else round(sum(tab3.total_cost) / sum(tab3.leads_count), 1) end as cpl,
-    case when sum(tab3.purchases_count) = 0 or sum(tab3.purchases_count) is null then 0
-        else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1) end as cppu,
-    round((sum(tab3.revenue) - sum(tab3.total_cost)) / sum(tab3.total_cost) * 100, 1) as roi
+    case when sum(tab3.leads_count) = 0 or
+    sum(tab3.leads_count) is null then 0
+        else round(sum(tab3.total_cost) /
+        sum(tab3.leads_count), 1) end as cpl,
+    case when sum(tab3.purchases_count) = 0
+    or sum(tab3.purchases_count) is null then 0
+        else round(sum(tab3.total_cost) /
+        sum(tab3.purchases_count), 1) end as cppu,
+    round((sum(tab3.revenue) - sum(tab3.total_cost)) /
+    sum(tab3.total_cost) * 100, 1) as roi
 from tab3
 group by 1, 2, 3
 order by 1, 2, 3, 4 desc, 5 desc, 6 desc, 7 desc
