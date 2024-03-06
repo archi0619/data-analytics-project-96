@@ -298,7 +298,8 @@ select
     or sum(tab3.purchases_count) is null then 0
         else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1)
         end as cppu,
-    round((sum(tab3.revenue) - sum(tab3.total_cost)) / sum(tab3.total_cost) * 100, 1) as roi
+    round((sum(tab3.revenue) - sum(tab3.total_cost)) /
+    sum(tab3.total_cost) * 100, 1) as roi
 from tab3
 group by 1;
 */
