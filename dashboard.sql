@@ -279,6 +279,8 @@ left join tab
         and tab2.campaign = tab.utm_campaign
         and tab2.visit_date = tab.campaign_date
 where tab2.medium != 'organic'
+and tab2.source = 'vk' or tab2.source = 'yandex'
+group by 1, 2, 3, 4, 5, 6, 7, 8, 9
 order by
     tab2.revenue desc nulls last,
     tab2.visit_date asc,
@@ -286,79 +288,141 @@ order by
     utm_source asc,
     utm_medium asc,
     utm_campaign asc
- )
- ,
- tab4 as (
- select
-     tab3.utm_source,
-     sum(tab3.total_cost / tab3.visitors_count) as cpu,
-     round(sum(tab3.total_cost) / sum(tab3.leads_count), 2) as cpl,
-     round(sum(tab3.total_cost) / sum(tab3.purchases_count), 2) as cppu,
-     sum((tab3.revenue - tab3.total_cost) / tab3.total_cost * 100.00) as roi
- from tab3
- group by 1
- )
- select *
- from tab4
- where
-     tab4.utm_source = 'yandex'
-     or tab4.utm_source = 'vk';
+)
+select
+    tab3.utm_source,
+    round(sum(tab3.total_cost) / sum(tab3.visitors_count), 1) as cpu,
+    case when sum(tab3.leads_count) = 0 or sum(tab3.leads_count) is null then 0
+        else round(sum(tab3.total_cost) / sum(tab3.leads_count), 1) end as cpl,
+    case when sum(tab3.purchases_count) = 0 or sum(tab3.purchases_count) is null then 0
+        else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1) end as cppu,
+    round((sum(tab3.revenue) - sum(tab3.total_cost)) / sum(tab3.total_cost) * 100, 1) as roi
+from tab3
+group by 1;
 */
 
 --Расчет метрики cpu, cpl, cppu, roi по source, medium и campaign:
-/*with tab as (
-select
-distinct(count(s.visitor_id)) as visitors_count,
-to_char(s.visit_date, 'yyyy-mm-dd') as date,
-s.source,
-s.medium,
-s.campaign,
-count(l.lead_id) as lead_count,
-count(l.lead_id) filter(
-where l.amount != 0 and l.status_id = 142) as purchase_count,
-case when sum(l.amount) is null then 0
-else sum(l.amount) end as income
-from sessions s
-left join leads l
-on s.visitor_id = l.visitor_id
-group by 3, 4, 5, 2
-), tab1 as (
-select
-to_char(va.campaign_date, 'yyyy-mm-dd') as date1,
-va.utm_source,
-va.utm_medium,
-va.utm_campaign,
-sum(va.daily_spent) as daily_spent
-from vk_ads va
-group by 2, 3, 4, 1
-union
-select
-to_char(ya.campaign_date, 'yyyy-mm-dd'),
-ya.utm_source,
-ya.utm_medium,
-ya.utm_campaign,
-sum(ya.daily_spent) as daily_spent
-from ya_ads ya
-group by 2, 3, 4, 1
+/*
+with tab1 as (
+    select distinct on (s.visitor_id)
+        s.visitor_id,
+        s.visit_date,
+        l.created_at,
+        l.status_id,
+        l.amount,
+        l.lead_id,
+        l.closing_reason,
+        s.medium,
+        s.source,
+        s.campaign
+    from sessions as s
+    left join leads as l
+        on
+            s.visitor_id = l.visitor_id
+            and s.visit_date <= l.created_at
+    where s.medium != 'organic'
+    order by
+        s.visitor_id asc,
+        s.visit_date desc
 )
+,
+tab as (
+    select
+        va.utm_source,
+        va.utm_medium,
+        va.utm_campaign,
+        cast(va.campaign_date as date) as campaign_date,
+        sum(va.daily_spent) as total_cost
+    from vk_ads as va
+    group by
+        va.utm_source,
+        va.utm_medium,
+        va.utm_campaign,
+        cast(va.campaign_date as date)
+    union
+    select
+        ya.utm_source,
+        ya.utm_medium,
+        ya.utm_campaign,
+        cast(ya.campaign_date as date) as campaign_date,
+        sum(ya.daily_spent) as total_cost
+    from ya_ads as ya
+    group by
+        ya.utm_source,
+        ya.utm_medium,
+        ya.utm_campaign,
+        cast(ya.campaign_date as date)
+)
+,
+tab2 as (
+    select
+        tab1.source,
+        tab1.medium,
+        tab1.campaign,
+        cast(tab1.visit_date as date) as visit_date,
+        count(tab1.visitor_id) as visitors_count,
+        count(tab1.visitor_id) filter (
+            where tab1.created_at is not null
+        ) as leads_count,
+        count(tab1.visitor_id) filter (
+            where tab1.status_id = 142
+        ) as purchases_count,
+        sum(tab1.amount) filter (
+            where tab1.status_id = 142
+        ) as revenue
+    from
+        tab1
+    group by
+        tab1.source,
+        tab1.medium,
+        tab1.campaign,
+        cast(tab1.visit_date as date)
+)
+,
+tab3 as (
 select
-tab.date,
-tab.source,
-tab.medium,
-tab.campaign,
-case when sum(tab1.daily_spent) / sum(tab.visitors_count) is null then 0
-else round((sum(tab1.daily_spent) / sum(tab.visitors_count)), 2) end as cpu,
-case when sum(tab1.daily_spent) / sum(tab.lead_count) is null then 0
-else round((sum(tab1.daily_spent) / sum(tab.lead_count)), 2) end as cpl,
-case when sum(tab1.daily_spent) / sum(tab.purchase_count) is null then 0
-else round((sum(tab1.daily_spent) / sum(tab.purchase_count)), 2) end as cppu,
-case when (sum(tab.income) - sum(tab1.daily_spent) / sum(tab1.daily_spent))
-* 100.00 is null then sum(tab.income)
-else (sum(tab.income) - sum(tab1.daily_spent) /
-sum(tab1.daily_spent)) * 100 end as roi
-from tab
-left join tab1
-on tab.source = tab1.utm_source
-and tab.medium = tab1.utm_medium
-and tab.campaign = tab1.utm_campaign
-group by 2, 3, 4, 1;*/
+    tab2.visit_date as visit_date,
+    tab2.visitors_count,
+    tab2.source as utm_source,
+    tab2.medium as utm_medium,
+    tab2.campaign as utm_campaign,
+    tab.total_cost,
+    tab2.leads_count,
+    tab2.purchases_count,
+    tab2.revenue
+from tab2
+left join tab
+    on
+        tab2.medium = tab.utm_medium
+        and tab2.source = tab.utm_source
+        and tab2.campaign = tab.utm_campaign
+        and tab2.visit_date = tab.campaign_date
+where tab2.medium != 'organic'
+and tab2.source = 'vk' or tab2.source = 'yandex'
+group by 1, 2, 3, 4, 5, 6, 7, 8, 9
+order by
+    tab2.revenue desc nulls last,
+    tab2.visit_date asc,
+    tab2.visitors_count desc,
+    utm_source asc,
+    utm_medium asc,
+    utm_campaign asc
+)
+,
+tab4 as (
+select
+    tab3.utm_source,
+    tab3.utm_medium,
+    tab3.utm_campaign,
+    round(sum(tab3.total_cost) / sum(tab3.visitors_count), 1) as cpu,
+    case when sum(tab3.leads_count) = 0 or sum(tab3.leads_count) is null then 0
+        else round(sum(tab3.total_cost) / sum(tab3.leads_count), 1) end as cpl,
+    case when sum(tab3.purchases_count) = 0 or sum(tab3.purchases_count) is null then 0
+        else round(sum(tab3.total_cost) / sum(tab3.purchases_count), 1) end as cppu,
+    round((sum(tab3.revenue) - sum(tab3.total_cost)) / sum(tab3.total_cost) * 100, 1) as roi
+from tab3
+group by 1, 2, 3
+order by 1, 2, 3, 4 desc, 5 desc, 6 desc, 7 desc
+)
+select * from tab4;
+*/
