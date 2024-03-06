@@ -11,7 +11,7 @@ order by date;
 --Каналы, которые приводят на сайт посетителей (разбивка по дням и каналам):
 /*
 select
-distinct(count(s.visitor_id)) as visitors_count,
+	distinct(count(s.visitor_id)) as visitors_count,
 s.source,
 s.medium,
 s.campaign,
